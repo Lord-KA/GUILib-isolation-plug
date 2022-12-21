@@ -80,18 +80,19 @@ namespace booba {
     void putPixel (uint64_t canvas, size_t x, size_t y, uint32_t color)
     {
         ProxyEvent ev;
-        ev.function = ProxyEvent::createCanvas;
+        ev.function = ProxyEvent::putPixel;
         ev.x = x;
         ev.y = y;
         ev.color = color;
         ev.canvasId = canvas;
+        std::cerr << "PutPixel: canvasId: " << canvas << "\n";
         sendEvent(ev);
     }
 
     void putSprite(uint64_t canvas, size_t x, size_t y, size_t w, size_t h, const char* texture)
     {
         ProxyEvent ev;
-        ev.function = ProxyEvent::createCanvas;
+        ev.function = ProxyEvent::putSprite;
         ev.x = x;
         ev.y = y;
         ev.w = w;
@@ -109,20 +110,20 @@ namespace booba {
     bool setToolBarSize(size_t w, size_t h)
     {
         ProxyEvent ev;
-        ev.function = ProxyEvent::createCanvas;
+        ev.function = ProxyEvent::setToolBarSize;
         ev.w = w;
         ev.h = h;
         sendEvent(ev);
 
         ev = getEvent();
-        assert(ev.function = ProxyEvent::createCanvas);
+        assert(ev.function = ProxyEvent::setToolBarSize);
         return ev.ok;
     }
 
     void cleanCanvas(uint64_t canvasId, uint32_t color)
     {
         ProxyEvent ev;
-        ev.function = ProxyEvent::createCanvas;
+        ev.function = ProxyEvent::cleanCanvas;
         ev.canvasId = canvasId;
         ev.color = color;
         sendEvent(ev);
@@ -130,6 +131,7 @@ namespace booba {
 
     void addTool(Tool* tool)
     {
+        assert(tool);
         ProxyEvent ev;
         ev.function = ProxyEvent::addTool;
         ev.tool = tool;
@@ -141,7 +143,7 @@ namespace booba {
         addTool(tool);
     }
 
-    static ProxyImage *IMAGE = nullptr;//TODO
+    static ProxyImage *IMAGE = nullptr;
 
     void handleToolEvents()
     {
@@ -150,14 +152,6 @@ namespace booba {
             if (ev.function == ProxyEvent::apply) {
                 ev.tool->apply(IMAGE, &ev.event);
                 ev.function = ProxyEvent::apply_finished;
-                sendEvent(ev);
-            } else if (ev.function == ProxyEvent::getTexture) {
-                const char *t = ev.tool->getTexture();
-                strncpy(ev.texture, t, 63);
-                sendEvent(ev);
-            } else if (ev.function == ProxyEvent::buildSetupWidget) {
-                ev.tool->buildSetupWidget();
-                ev.function = ProxyEvent::buildSetupWidget_finished;
                 sendEvent(ev);
             } else {
                 std::cerr << "ERROR: wrong proxy event (" << ev.function << ")\n";
@@ -182,15 +176,37 @@ namespace booba {
                 void (*init)()     = nullptr;
                 *((void**)(&init)) = dlsym(dlHandler, "init_module");
                 (*init)();
-                ev.function = ProxyEvent::init_module_finished;
+                for (size_t i = 0; i < 2; ++i) {
+                    ev = getEvent();
+                    if (ev.function == ProxyEvent::getTexture) {
+                        const char *t = ev.tool->getTexture();
+                        strncpy(ev.texture, t, 63);
+                        sendEvent(ev);
+                    } else if (ev.function == ProxyEvent::buildSetupWidget) {
+                        ev.tool->buildSetupWidget();
+                        ev.function = ProxyEvent::buildSetupWidget_finished;
+                        sendEvent(ev);
+                    } else {
+                        std::cerr << "ERROR: wrong proxy event (" << ev.function << ")\n";
+                        assert(false);
+                        exit(-1);
+                    }
+                }
+
             } else {
                 fprintf(stderr, "ERROR: Unable to open plugin: %s\n", dlerror());
             }
         }
+        ev.function = ProxyEvent::init_module_finished;
+        sendEvent(ev);
     }
 }
 
 int main()
 {
+    booba::APPCONTEXT = new booba::ApplicationContext;
+    booba::IMAGE = new booba::ProxyImage();
+    booba::init_DLLs("/home/user/Plugins/");
 
+    booba::handleToolEvents();
 }

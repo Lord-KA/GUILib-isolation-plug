@@ -37,7 +37,7 @@ namespace booba {
             // Non-standart helpers
             sendFile, //FIXME remove if unused?
             updateContext,
-        } function;
+        } function = none;
         Event event;
         size_t x, y;
         size_t w, h;

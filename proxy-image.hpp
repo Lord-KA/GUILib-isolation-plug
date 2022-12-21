@@ -1,17 +1,19 @@
 #include <cassert>
+#include <iostream>
 
 #include "tools.hpp"
 #include "proxy-event.hpp"
 
 namespace booba {
-
     static ProxyEvent getEvent() //TODO move from cin/cout to other streams
     {
+        std::cerr << "Server awaiting event\n";
         ProxyEvent ev;
         std::cin.read((char*)&ev, sizeof(ProxyEvent));
         if (std::cin.gcount() != sizeof(ProxyEvent)) {
             assert(false);
         }
+        std::cerr << "Server got event " << ev.function << "\n";
         return ev;
     }
 
@@ -21,6 +23,7 @@ namespace booba {
         ev.context = *APPCONTEXT;
         std::cout.write((char*)&ev, sizeof(ProxyEvent));
         std::cout.flush();      //TODO maybe do flush() on many buffered events.
+        std::cerr << "Server sent event " << ev.function << "\n";
     }
 
     class ProxyImage : public Image {
