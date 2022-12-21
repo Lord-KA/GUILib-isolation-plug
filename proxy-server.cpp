@@ -85,7 +85,6 @@ namespace booba {
         ev.y = y;
         ev.color = color;
         ev.canvasId = canvas;
-        std::cerr << "PutPixel: canvasId: " << canvas << "\n";
         sendEvent(ev);
     }
 
@@ -206,7 +205,7 @@ int main()
 {
     booba::APPCONTEXT = new booba::ApplicationContext;
     booba::IMAGE = new booba::ProxyImage();
-    booba::init_DLLs("/home/user/Plugins/");
+    booba::init_DLLs("/home/user/QubesIncoming/Dev-fedora/UntrustedPlugins/");
 
     booba::handleToolEvents();
 }
