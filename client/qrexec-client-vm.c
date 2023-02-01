@@ -81,10 +81,9 @@ static int connect_unix_socket(const char *path)
  */
 static void convert_target_name_keyword(char *target)
 {
-    size_t i;
     size_t len = strlen(target);
 
-    for (i = 0; i < len; i++)
+    for (size_t i = 0; i < len; i++)
         if (target[i] == '$')
             target[i] = '@';
 }
@@ -94,10 +93,7 @@ enum {
     opt_no_filter_stderr = 'T'+128,
 };
 
-static char target_vmname[] = "RPCTest";
-static char service_name[] = "test.Add";
-
-int exec_connector()
+int exec_connector(const char *target_vmname, const char *service_name)
 {
     int trigger_fd;
     struct msg_header hdr;
@@ -127,10 +123,10 @@ int exec_connector()
 
     memset(&params, 0, sizeof(params));
 
-    convert_target_name_keyword(target_vmname);
-    fprintf(stderr, "target_vmname: %s\n", target_vmname);
     strncpy(params.target_domain, target_vmname,
             sizeof(params.target_domain) - 1);
+    convert_target_name_keyword(params.target_domain);
+    fprintf(stderr, "target_vm name: %s\n", params.target_domain);
 
     snprintf(params.request_id.ident,
             sizeof(params.request_id.ident), "SOCKET");
@@ -163,7 +159,7 @@ int exec_connector()
         exit(1);
     }
     prepare_child_env();
-    
+
     IN_FD  = inpipe[0];
     OUT_FD = outpipe[1];
 

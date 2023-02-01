@@ -4,27 +4,16 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "qrexec-client.h"
+
 #include "tools.hpp"
 #include "proxy-event.hpp"
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-int exec_connector();
-
-#ifdef __cplusplus
-}
-#endif
-
-extern int IN_FD;
-extern int OUT_FD;
 
 namespace booba {
 
     static ProxyEvent getEvent()
     {
-        std::cerr << "Client awaiting event\n";	
+        std::cerr << "Client awaiting event\n";
         ProxyEvent ev = {};
 	size_t res = read(IN_FD, (char*)&ev, sizeof(ProxyEvent));
         if (res != sizeof(ProxyEvent)) {
@@ -150,7 +139,7 @@ namespace booba {
 
     void init_module()
     {
-	exec_connector();
+	exec_connector("RPCTest", "test.Add");
 
 	system("qvm-copy ../UntrustedPlugins");
 
