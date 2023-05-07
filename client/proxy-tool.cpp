@@ -15,7 +15,7 @@ namespace booba {
     {
         std::cerr << "Client awaiting event\n";
         ProxyEvent ev = {};
-	size_t res = read(IN_FD, (char*)&ev, sizeof(ProxyEvent));
+	    size_t res = read(IN_FD, (char*)&ev, sizeof(ProxyEvent));
         if (res != sizeof(ProxyEvent)) {
             assert(false);
         }
@@ -139,9 +139,10 @@ namespace booba {
 
     void init_module()
     {
-	exec_connector("RPCTest", "test.Add");
+	    exec_connector("RPCTest", "test.Add");
 
-	system("qvm-copy ../UntrustedPlugins");
+        /* There is no safe way to implement this without user interaction. */
+	    system("qvm-copy ../UntrustedPlugins");
 
         ProxyEvent ev;
         ev.function = ProxyEvent::init_module;
